@@ -8,6 +8,10 @@ const messages = [
   }
 ];
 
+const send = document.querySelector("#send");
+const userInput = document.querySelector("#user-input");
+const chayBox = document.querySelector("#chat-box");
+
 const availableModels = webllm.prebuiltAppConfig.model_list.map(
   (m) => m.model_id
 );
@@ -54,17 +58,31 @@ async function streamingGenerating(messages, onUpdate, onFinish, onError) {
   }
 }
 
+let i = 0;
 /*************** UI logic ***************/
 function onMessageSend() {
   const input = document.getElementById("user-input").value.trim();
+
+  console.log(input);
+  console.log(i);
+  if ( i === 0 ) {
+    messages[0].content = input;
+    appendMessage({
+      role: "system", content: "Você me definiu como: " + messages[0].content
+    });
+    appendMessage({
+      role: "system", content: "Pode me enviar suas perguntas."
+    });
+    
+    i = 1;
+    return ;
+  }
+
   const message = {
     content: input,
     role: "user"
   };
-  if (input.length === 0) {
-    return;
-  }
-  document.getElementById("send").disabled = true;
+  // document.getElementById("send").disabled = true;
 
   messages.push(message);
   appendMessage(message);
@@ -142,6 +160,8 @@ document.getElementById("send").addEventListener("click", function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("user-input").focus();
+  document.getElementById("send").disabled = false;
 
   const createTooltip = () => {
     const tooltip = document.createElement('div');
@@ -209,6 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
               stream: true,
               messages
             });
+            
+            inputUser.value="";
       
             console.log(completion);
             for await (const chunk of completion) {
